@@ -1,0 +1,16 @@
+{
+  "name": "back_end",
+  "version": "1.0.0",
+  "description": "back-end vedio plathform",
+  "main": "  ",
+  "scripts": {
+    "test": " "
+  },
+  "keywords": [
+    "javascript",
+    "backend",
+    "node"
+  ],
+  "author": "Navin meena",
+  "license": "ISC"
+}
