@@ -2,9 +2,10 @@
   "name": "back_end",
   "version": "1.0.0",
   "description": "back-end vedio plathform",
+  "type": "module",
   "main": "  ",
   "scripts": {
-    "test": " "
+    "dev": "nodemon src/index.js"
   },
   "keywords": [
     "javascript",
@@ -12,5 +13,11 @@
     "node"
   ],
   "author": "Navin meena",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "devDependencies": {
+    "prettier": "^3.0.3"
+  }
 }
