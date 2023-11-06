@@ -182,7 +182,7 @@ cors can be modified by changing object which contains setting of it
 
 # asyncHandler.js
 
-we make asyncHandler.js
+we make asyncHandler.js in ./scr/utils
 - type 1  promises
 ```
   const asyncHandler=(requestHandler)=>{
@@ -210,3 +210,49 @@ we make asyncHandler.js
 ```
 
 we can use any one of them 
+
+
+# ApiError
+
+1. we make ApiError.js file in src/utils in which we add a class extendes error which is a node error class
+here we standrise all the parameters which have to send during error
+
+```
+  class ApiError extends error {
+    constructor(
+      statusCode,
+      message="something went wrong"
+      errors=[],
+      statck=""
+      ){
+        super(message)
+        this.statusCode=statusCode
+        this.data=null
+        this.message=message
+        this.success=false;
+        this.errors=errors
+
+
+        if(statck){
+          this.statck=statck
+        }else{
+          error.captureStacktrace(this,this.constructor)
+        }
+      }
+  }
+```
+# ApiResponse
+
+- male a file in ./scr/util  name ApiResponse.js
+
+```
+  class ApiResponse{
+    constructor(statusCode,data,message="Success){
+      this.statusCode=statusCode
+        this.data=null
+        this.message=message
+        this.success=tatusCode
+    }
+        
+  }
+```
