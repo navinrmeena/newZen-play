@@ -20,7 +20,15 @@ console.log("\n",process.env.PORT);
 
 
 
-connectDB();
+connectDB()
+.then(()=>{
+    app.listen(process.env.PORT ||8000,()=>{
+        console.log(`app is listining at ${process.env.PORT ||8000}`)
+    })
+})
+.catch((error)=>{
+    console.log("mongodb conection failed",error)
+})
 
 
 

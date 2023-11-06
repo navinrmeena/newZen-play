@@ -89,6 +89,7 @@ import {DB_NAME} from "./constant"
 
 
 
+
 const connectDB=async()=>{
     try {
         const connectionInstance =await mongoose.connect(`${process.env.MONGOBD_URI}/${DB_NAME}`)
@@ -100,4 +101,112 @@ const connectDB=async()=>{
 }
 
 
-export default connectDB;```
+export default connectDB;
+```
+
+
+
+
+
+# how listing of site 
+
+1. we add express in app.js
+
+    ```import express from "express"
+      const app=express();
+      export {app};
+      ```
+
+2. as our db code is async  so after calling that function we get a promiss so we add .then(),.catch()
+  
+  ```
+  DBconnect()
+  .then(()=>{
+    app.listen(process.env.PORT||8000,()=>{
+      console.log(`site is running at port : ${process.env.PORT||8000}`)
+    })
+  })
+  .catch(()=>{
+    console.log("db connection error ")
+  })
+
+  ```
+
+
+- install 
+```import cookieParser from "cookie-parser";
+import cors from "cors";
+```
+
+and add in app.js
+
+  ```import cookieParser from "cookie-parser";
+  import cors from "cors";
+  
+  app.use(cors({
+    origin: process.env.cors_origin,
+    crediantials:true
+  }))
+  ```
+
+cors can be modified by changing object which contains setting of it
+
+
+  now add cors_origin in .env file 
+  ```
+  cors_origin=*
+  ```
+
+  here * means any one can asses but we ca set specific domain while hosting 
+
+- now set we have to limit incoming data limit such as json limit to 16kb
+
+```
+  app.use(express.json({
+    limit:16kb
+  }))
+  app.use(express.urlencoded({
+    limit:16kb
+  }))
+  app.use(express.static("public"))
+
+  app.use(cockieparser)
+```
+
+# middleware 
+ - while taking data and sending (like from api) checking a validation (like user is loged in or not) 
+ is called middle ware
+
+ (error,req,res,next)
+    
+
+# asyncHandler.js
+
+we make asyncHandler.js
+- type 1  promises
+```
+  const asyncHandler=(requestHandler)=>{
+    (req,res,next)=>{
+      promiseresolve(requestHandler(req,res,next)).catch(error)=>next(err)
+    }
+  }
+```
+
+
+- type 2   try/catch method 
+
+```
+  const asyncHandler=(fn)=>async (req,res,next)=>{
+    try{
+      await fn(req,res,next)
+    }catch (error){
+      res.status(err.code ||500).json({
+
+        sucess:fasle,
+        essage:err.message
+      })
+    }
+  }
+```
+
+we can use any one of them 
