@@ -256,3 +256,642 @@ here we standrise all the parameters which have to send during error
         
   }
 ```
+
+# Modeling 
+first we make a file in models (user.models.js   vedio.models.js)
+
+
+1)  # users->
+
+    - in user model we add 
+      ![Alt text](image.png)
+
+
+      to write user model we write a code 
+
+```
+
+          import mongoose ,{Schema} from "mongoose";
+
+    const userSchema=new Schema(
+        {
+            username:{
+                type:String,
+                required:true,
+                unique:true,
+                lowercase:true,
+                trim:true,
+                index:true
+            },
+            // to any fiels if we want to add searching function 
+            // make sure to add index field
+            email:{
+                type: String,
+                required:true,
+                unique:true,
+                lowercase:true,
+                trim:true
+            },
+            fullname:{
+                type: String,
+                required:true,
+                lowercase:true,
+                trim:true
+            },
+            avatar:{
+                type: String, //here we use third party service like cloudniary url
+                required:true,
+            },
+            coverimage:{
+                type: String, //here we use third party service like cloudniary url
+            },
+            WatchHistory:{
+                type:Schema.type.ObjectId,
+                ref:"Vedio"
+            },
+            password:{
+                type:String,
+                required:[true,"pasword is required"] //we can give a coustom message with true
+
+            }
+
+        } ,{
+            timestamps:true,
+
+        }
+    )
+
+
+    export const User= mongoose.model("User",userSchema);
+
+```
+
+
+1)  # Video->
+    ![Alt text](image-1.png)
+
+``` 
+
+  import mongoose, {Schema} from "mongoose";
+
+const video=new Schema({
+    videoFile:{
+        type:String,
+        required:true
+    },
+    thumbnail:{
+        type:String,
+        required:true
+    },
+    owner:{
+        type:Schema.ObjectId,
+        ref:"owner",
+        required:true,
+    },
+    title:{
+        type:String,
+        required:true
+    },
+    description:{
+        type:String,
+        required:true
+    },
+    duration:{
+        type:Number, //cloudinary
+        default:0
+
+    },
+    views:{
+        type:Number,
+        required:[true,0],
+
+    },
+    isPublish:{
+        type:Boolean,
+        default:true
+    }
+
+})
+
+
+export const Vedio=mongoose.model("Video",video);
+
+
+```
+
+now we install mongoose-aggregate-paginate-v2
+by
+``
+npm i mongoose-aggregate-paginate-v2
+``
+this  will help to use mongoose aggrigate framework
+
+now we import mongoose-aggregate-paginate in vedios.model.js by
+ ``
+import mongooseAggregatePaginate from "mongoose-aggregate-paginate-v2";
+``
+
+and after our const schema of vedo we use 
+``
+videoSchema.plugins(mongooseAggregatePaginate);
+``
+ and now our code becomes 
+ ```
+  import mongoose, {Schema} from "mongoose";
+import mongooseAggregatePaginate from "mongoose-aggregate-paginate-v2";
+
+const videoSchema=new Schema({
+    videoFile:{
+        type:String,
+        required:true
+    },
+    thumbnail:{
+        type:String,
+        required:true
+    },
+    owner:{
+        type:Schema.ObjectId,
+        ref:"owner",
+        required:true,
+    },
+    title:{
+        type:String,
+        required:true
+    },
+    description:{
+        type:String,
+        required:true
+    },
+    duration:{
+        type:Number, //cloudinary
+        default:0
+
+    },
+    views:{
+        type:Number,
+        required:[true,0],
+
+    },
+    isPublish:{
+        type:Boolean,
+        default:true
+    }
+
+})
+
+videoSchema.plugins(mongooseAggregatePaginate);
+
+export const Vedio=mongoose.model("Video",videoSchema);
+
+ 
+
+ ```
+
+
+ now we intall bcrypt  and   jsonwebtoken by ``npm i bcrypt``
+
+ 1) bcrypt : A library to help you hash passwords.
+ now  we install jsonwebtoken by ``npm i jsonwebtoken``
+
+2) jsonwebtoken: JWT stands for JSON Web Token. It is an open standard for securely transmitting information between parties as a JSON object. It is commonly used for authentication and authorization purposes in web applications.
+
+
+
+now in user.model.js file 
+we import jwt and bcrypt
+``
+import  Jwt  from "jsonwebtoken";
+``
+
+``
+import bcrypt from"bcrypt";
+``
+
+now our code become
+```
+  import mongoose ,{Schema} from "mongoose";
+import  Jwt  from "jsonwebtoken";
+import bcrypt from"bcrypt";
+
+
+const userSchema=new Schema(
+    {
+        username:{
+            type:String,
+            required:true,
+            unique:true,
+            lowercase:true,
+            trim:true,
+            index:true
+        },
+        // to any fiels if we want to add searching function 
+        // make sure to add index field
+        email:{
+            type: String,
+            required:true,
+            unique:true,
+            lowercase:true,
+            trim:true
+        },
+        fullname:{
+            type: String,
+            required:true,
+            lowercase:true,
+            trim:true
+        },
+        avatar:{
+            type: String, //here we use third party service like cloudniary url
+            required:true,
+        },
+        coverimage:{
+            type: String, //here we use third party service like cloudniary url
+        },
+        WatchHistory:{
+            type:Schema.type.ObjectId,
+            ref:"Vedio"
+        },
+        password:{
+            type:String,
+            required:[true,"pasword is required"] //we can give a coustom message with true
+
+        }
+
+    } ,{
+        timestamps:true,
+
+    }
+)
+
+
+export const User= mongoose.model("User",userSchema);
+
+```
+
+now we can not directly encrypt data we have to use hook
+of mongoose
+
+so we use PRE from mongoose 
+
+- PRE - Pre middleware functions are executed one after another, when each middleware calls next.
+```
+
+
+userSchema.pre("save", async function(next){
+    if(this.isModifid("password")){
+        this.password=bcrypt.hash(this.password,10)
+        // bcrypt.hash(this.password,10) is the method of bcrypt and 10= 10 times
+    next();
+    }
+    // here we add this if because we dont want that every time save event called and password cahnges
+    // like is user change avitar and save event called and here 
+    // our pre changes password again
+
+    return next();
+    
+})
+
+
+// here in pre "save" is event we can read more on monngose website
+// and in  pre we dont use arrow function because it doest not have this key word
+// this type of funcaton always take time so we use async
+
+```
+
+
+
+our new user.models.js becomes
+```
+  import mongoose ,{Schema} from "mongoose";
+import  Jwt  from "jsonwebtoken";
+import bcrypt from"bcrypt";
+
+
+const userSchema=new Schema(
+    {
+        username:{
+            type:String,
+            required:true,
+            unique:true,
+            lowercase:true,
+            trim:true,
+            index:true
+        },
+        // to any fiels if we want to add searching function 
+        // make sure to add index field
+        email:{
+            type: String,
+            required:true,
+            unique:true,
+            lowercase:true,
+            trim:true
+        },
+        fullname:{
+            type: String,
+            required:true,
+            lowercase:true,
+            trim:true
+        },
+        avatar:{
+            type: String, //here we use third party service like cloudniary url
+            required:true,
+        },
+        coverimage:{
+            type: String, //here we use third party service like cloudniary url
+        },
+        WatchHistory:{
+            type:Schema.type.ObjectId,
+            ref:"Vedio"
+        },
+        password:{
+            type:String,
+            required:[true,"pasword is required"] //we can give a coustom message with true
+
+        }
+
+    } ,{
+        timestamps:true,
+
+    }
+)
+
+userSchema.pre("save", async function(next){
+    if(this.isModifid("password")){
+        this.password=bcrypt.hash(this.password,10)
+        // bcrypt.hash(this.password,10) is the method of bcrypt and 10= 10 times
+    next();
+    }
+    // here we add this if because we dont want that every time save event called and password cahnges
+    // like is user change avitar and save event called and here 
+    // our pre changes password again
+
+    return next();
+    
+})
+
+
+// here in pre "save" is event we can read more on monngose website
+// and in  pre we dont use arrow function because it doest not have this key word
+// this type of funcaton always take time so we use async
+
+export const User= mongoose.model("User",userSchema);
+
+```
+
+
+
+we add password compare function 
+in moongoose we can add coustom functions 
+
+
+now our code looks like 
+```
+  import mongoose ,{Schema} from "mongoose";
+import  Jwt  from "jsonwebtoken";
+import bcrypt from"bcrypt";
+
+
+const userSchema=new Schema(
+    {
+        username:{
+            type:String,
+            required:true,
+            unique:true,
+            lowercase:true,
+            trim:true,
+            index:true
+        },
+        // to any fiels if we want to add searching function 
+        // make sure to add index field
+        email:{
+            type: String,
+            required:true,
+            unique:true,
+            lowercase:true,
+            trim:true
+        },
+        fullname:{
+            type: String,
+            required:true,
+            lowercase:true,
+            trim:true
+        },
+        avatar:{
+            type: String, //here we use third party service like cloudniary url
+            required:true,
+        },
+        coverimage:{
+            type: String, //here we use third party service like cloudniary url
+        },
+        WatchHistory:{
+            type:Schema.type.ObjectId,
+            ref:"Vedio"
+        },
+        password:{
+            type:String,
+            required:[true,"pasword is required"] //we can give a coustom message with true
+
+        }
+
+    } ,{
+        timestamps:true,
+
+    }
+)
+
+userSchema.pre("save", async function(next){
+    if(this.isModifid("password")){
+        this.password=bcrypt.hash(this.password,10)
+        // bcrypt.hash(this.password,10) is the method of bcrypt and 10= 10 times
+    next();
+    }
+    // here we add this if because we dont want that every time save event called and password cahnges
+    // like is user change avitar and save event called and here 
+    // our pre changes password again
+
+    return next();
+    
+})
+
+
+// here in pre "save" is event we can read more on monngose website
+// and in  pre we dont use arrow function because it doest not have this key word
+// this type of funcaton always take time so we use async
+
+userSchema.methods.isPasswordCorrect= async function(password){
+    return await bcrypt.compare(password,this.password);
+    // bcrypt.compare(password,this.password);
+    // in this  bcrypt compare our password given by user and saved password 
+}
+
+export const User= mongoose.model("User",userSchema);
+
+```
+
+now we add ACCESS_TOKEN  we can set it like password or random in .env file
+``
+ACCESS_TOKEN_SECRTE=l!XtnVIaRKuc-YLBb1Zw/v33O2RkLV0Ml4K9DkOa-7y3hZNsrXfPbD8u0ie8eW1u
+``
+
+``
+ACCESS_TOKEN_EXPIRY=1d
+``
+
+``
+REFRESH_TOKEN_SECTRE=v3kSWK3A4qLSVM=UI1?
+``
+
+``
+REFRESH_TOKEN_EXPIRY=10d
+``
+
+
+
+we make function in user.model.js 
+
+jwt.sign is a function used in JavaScript to create a JSON Web Token (JWT) by signing a payload with a secret key. The resulting JWT can be used for authentication and authorization purposes. Is there anything specific you would like to know about jwt.sign?
+```
+  userSchema.method.genrateAccestoken= async function(){
+    return  Jwt.sign(
+        {
+            _id:this._id,
+            email:this.email,
+            fullName:this.fullName
+        },
+        process.env.ACCESS_TOKEN_SECRTE,
+        {
+            expiresIn:process.env.ACCESS_TOKEN_EXPIRY
+        }
+    )
+}
+
+userSchema.method.genrateRefreshtoken= async function(){
+    return  Jwt.sign(
+        // jwt.sign is method which genrate token 
+        {
+            _id:this._id,
+        },
+        process.env.REFRESH_TOKEN_SECTRE,
+        {
+            expiresIn:process.env.REFRESH_TOKEN_EXPIRY
+        }
+    )
+}
+
+
+```
+
+
+
+now our code in user.models.js becomes 
+```
+import mongoose ,{Schema} from "mongoose";
+import  Jwt  from "jsonwebtoken";
+import bcrypt from"bcrypt";
+
+
+const userSchema=new Schema(
+    {
+        username:{
+            type:String,
+            required:true,
+            unique:true,
+            lowercase:true,
+            trim:true,
+            index:true
+        },
+        // to any fiels if we want to add searching function 
+        // make sure to add index field
+        email:{
+            type: String,
+            required:true,
+            unique:true,
+            lowercase:true,
+            trim:true
+        },
+        fullName:{
+            type: String,
+            required:true,
+            lowercase:true,
+            trim:true
+        },
+        avatar:{
+            type: String, //here we use third party service like cloudniary url
+            required:true,
+        },
+        coverimage:{
+            type: String, //here we use third party service like cloudniary url
+        },
+        WatchHistory:{
+            type:Schema.type.ObjectId,
+            ref:"Vedio"
+        },
+        password:{
+            type:String,
+            required:[true,"pasword is required"] //we can give a coustom message with true
+
+        }
+
+    } ,{
+        timestamps:true,
+
+    }
+)
+
+userSchema.pre("save", async function(next){
+    if(this.isModifid("password")){
+        this.password=bcrypt.hash(this.password,10)
+        // bcrypt.hash(this.password,10) is the method of bcrypt and 10= 10 times
+    next();
+    }
+    // here we add this if because we dont want that every time save event called and password cahnges
+    // like is user change avitar and save event called and here 
+    // our pre changes password again
+
+    return next();
+    
+})
+
+
+// here in pre "save" is event we can read more on monngose website
+// and in  pre we dont use arrow function because it doest not have this key word
+// this type of funcaton always take time so we use async
+
+userSchema.methods.isPasswordCorrect= async function(password){
+    return await bcrypt.compare(password,this.password);
+    // bcrypt.compare(password,this.password);
+    // in this  bcrypt compare our password given by user and saved password 
+}
+
+// we can also make function for genrating assec token
+
+userSchema.method.genrateAccestoken= async function(){
+    return  Jwt.sign(
+        {
+            _id:this._id,
+            email:this.email,
+            fullName:this.fullName
+        },
+        process.env.ACCESS_TOKEN_SECRTE,
+        {
+            expiresIn:process.env.ACCESS_TOKEN_EXPIRY
+        }
+    )
+}
+
+userSchema.method.genrateRefreshtoken= async function(){
+    return  Jwt.sign(
+        // jwt.sign is method which genrate token 
+        {
+            _id:this._id,
+        },
+        process.env.REFRESH_TOKEN_SECTRE,
+        {
+            expiresIn:process.env.REFRESH_TOKEN_EXPIRY
+        }
+    )
+}
+
+export const User= mongoose.model("User",userSchema);
+
+```
+
