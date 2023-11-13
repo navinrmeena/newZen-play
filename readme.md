@@ -48,7 +48,7 @@ while useing databse alway remember two things
 code for connecting in index.js
 
 this is our first approch 
-```
+```js
   import mongoose from "mongoose";
 // import name from constant
 import {DB_NAME} from "./constants";
@@ -83,7 +83,8 @@ const app=express()
 now second approch 
 
 we make index.js in "./scr/DB"
-  ```import mongoose from "mongoose";
+  ```js
+import mongoose from "mongoose";
 import express from "express";
 import {DB_NAME} from "./constant"
 
@@ -184,7 +185,7 @@ cors can be modified by changing object which contains setting of it
 
 we make asyncHandler.js in ./scr/utils
 - type 1  promises
-```
+```js
   const asyncHandler=(requestHandler)=>{
     (req,res,next)=>{
       promiseresolve(requestHandler(req,res,next)).catch(error)=>next(err)
@@ -195,7 +196,7 @@ we make asyncHandler.js in ./scr/utils
 
 - type 2   try/catch method 
 
-```
+```js
   const asyncHandler=(fn)=>async (req,res,next)=>{
     try{
       await fn(req,res,next)
@@ -217,7 +218,7 @@ we can use any one of them
 1. we make ApiError.js file in src/utils in which we add a class extendes error which is a node error class
 here we standrise all the parameters which have to send during error
 
-```
+```js
   class ApiError extends error {
     constructor(
       statusCode,
@@ -269,7 +270,7 @@ first we make a file in models (user.models.js   vedio.models.js)
 
       to write user model we write a code 
 
-```
+```js
 
           import mongoose ,{Schema} from "mongoose";
 
@@ -330,7 +331,7 @@ first we make a file in models (user.models.js   vedio.models.js)
 1)  # Video->
     ![Alt text](image-1.png)
 
-``` 
+``` js
 
   import mongoose, {Schema} from "mongoose";
 
@@ -396,7 +397,7 @@ and after our const schema of vedo we use
 videoSchema.plugins(mongooseAggregatePaginate);
 ``
  and now our code becomes 
- ```
+ ```js
   import mongoose, {Schema} from "mongoose";
 import mongooseAggregatePaginate from "mongoose-aggregate-paginate-v2";
 
@@ -468,7 +469,7 @@ import bcrypt from"bcrypt";
 ``
 
 now our code become
-```
+```js
   import mongoose ,{Schema} from "mongoose";
 import  Jwt  from "jsonwebtoken";
 import bcrypt from"bcrypt";
@@ -560,7 +561,7 @@ userSchema.pre("save", async function(next){
 
 
 our new user.models.js becomes
-```
+```js
   import mongoose ,{Schema} from "mongoose";
 import  Jwt  from "jsonwebtoken";
 import bcrypt from"bcrypt";
@@ -644,7 +645,7 @@ in moongoose we can add coustom functions
 
 
 now our code looks like 
-```
+```js
   import mongoose ,{Schema} from "mongoose";
 import  Jwt  from "jsonwebtoken";
 import bcrypt from"bcrypt";
@@ -783,7 +784,7 @@ userSchema.method.genrateRefreshtoken= async function(){
 
 
 now our code in user.models.js becomes 
-```
+```js
 import mongoose ,{Schema} from "mongoose";
 import  Jwt  from "jsonwebtoken";
 import bcrypt from"bcrypt";
@@ -894,4 +895,102 @@ userSchema.method.genrateRefreshtoken= async function(){
 export const User= mongoose.model("User",userSchema);
 
 ```
+# File Upload
+
+for storing file we use mostly third party services like cloudniary 
+
+
+so in cloudinary 
+first we install it by ``npm install cloudinary``
+
+we also use multer and install it by multer ```npm i multer``` alternative of multer is expess-fileupload
+
+
+we make a different file for file handling we can name it as filehandling or clournary
+some developer store it in utils and some in src  we are useing filehandling as utils
+
+
+
+we use two steps to upload file on
+1. we first take file on local server the
+2. n we upload file to cloudinary 
+3. then we remove file from local server
+
+
+import {v2 as cloudinary} from 'cloudinary';
+heree v2 as cloudinary means imported v2 but wr rename it as cloudinary
+
+now we import fs
+
+now we allso add name in .env 
+
+```js
+PORT=8000
+MONGODB_URI=mongodb+srv://navinmeena:1234@cluster0.uxyz2t0.mongodb.net
+CORS_ORIGIN=*
+# HERE * MEAN  any domain can asses but we can also change name 
+ACCESS_TOKEN_SECRTE=l!XtnVIaRKuc-YLBb1Zw/v33O2RkLV0Ml4K9DkOa-7y3hZNsrXfPbD8u0ie8eW1u
+ACCESS_TOKEN_EXPIRY=1d
+REFRESH_TOKEN_SECTRE=v3kSWK3A4qLSVM=UI1?96jTlN2Q5Fp8VTXjGi0LqIahcx0YZG/q0ImzSfslGgp08
+REFRESH_TOKEN_EXPIRY=10d
+
+
+CLOUDINARY_CLOUD_NAME:diexrevjz
+CLOUDINARY_API_KEY:576434828249582
+CLOUDINARY_API_SECRET:5Z-Ag3uVSsebqP__JUx1UdYYWcI
+
+```
+and the also link to cloudinary.js
+
+
+
+now we make a function in cloudinary.js for uploading file
+
+```js
+import {v2 as cloudinary} from 'cloudinary';
+import fs from 'fs';
+import { url } from 'inspector';
+// fs is nodejs propertis
+
+cloudinary.config({ 
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME, 
+    api_key: process.env.CLOUDINARY_API_KEY, 
+    api_secret: process.env.CLOUDINARY_API_SECRET
+  });
+
+
+const uploadOnCloudinary=async (localPath)=>{
+    try {
+        if(localPath){
+           const response=await cloudinary.uploader.upload(localPath,{
+                resource_type:'auto'
+            });
+            console.log("file is uploaded on cloudinary",url);
+            return response;
+
+
+            // here it is syntex of cloudinary to upload files
+            // we can give any url ,localfile address
+
+        }
+        else{
+            const notfound="local path not found";
+            return notfound
+        }
+    } catch (error) {
+        fs.unlinkSync(localPath)
+        // this will remove locall uploaded file is anything gone wrong
+        return null;
+
+    }
+}
+
+export {uploadOnCloudinary};
+
+```
+
+
+# Multer middleware
+
+first we make a file in middlewares with name multer.middlewarre.js
 
