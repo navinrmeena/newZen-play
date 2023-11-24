@@ -994,3 +994,40 @@ export {uploadOnCloudinary};
 
 first we make a file in middlewares with name multer.middlewarre.js
 
+
+
+# HTTPS
+HYPER TEXT TRANSFER PROTOCOL 
+URL  UNIFORM RESOURSE LOCATOR
+URI  UNIFORM RESOURSE IDENTIFIER
+URN UNIFORM RESOURSE NAME
+
+ 
+- what is headers ?
+    meta-data - key value set along with req& res
+
+    Request headers ->  from client 
+    Response headers -> from server
+    representtion headers -> encoding /compression
+    payload headers -> data
+
+
+ -https method
+  GET:
+  HEAD:
+  OPTIONS :
+  DELETE:
+  PUT:
+  POP:
+  PUSH:
+
+
+
+  HTTPS STATUS CODE
+
+  1xx information
+  2xx sucsuss
+  3xx redirection
+  4xx client eroe
+  5xx server error
+  
