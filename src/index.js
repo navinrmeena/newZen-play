@@ -2,7 +2,7 @@ import dotenv from "dotenv"
 import mongoose from "mongoose";
 // import name from constant
 import {DB_NAME} from "./constants.js";
-
+import {app} from './app.js'
 import connectDB from "./DB/index.js";
 
 // improting express
@@ -13,7 +13,7 @@ dotenv.config({
     path:'./env'
 })
 
-const app=express()
+// const app=express()
 
 
 console.log("\n",process.env.PORT);
@@ -29,7 +29,6 @@ connectDB()
 .catch((error)=>{
     console.log("mongodb conection failed",error)
 })
-
 
 
 // we use a function and iffi

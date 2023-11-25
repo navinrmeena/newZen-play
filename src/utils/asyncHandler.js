@@ -1,10 +1,10 @@
 const asyncHandler=(requestHandler)=>{
-    (req,res,next)=>{
-        Promise.resolve().catch((error)=>next(error))
+    return (req,res,next)=>{
+        Promise.resolve(requestHandler(req,res,next)).catch((error)=>next(error))
     }
 }
 
-export {asyncHandler}
+
 
 
 
@@ -19,4 +19,5 @@ const asyncHandler1=(fn)=>async(req,res,next)=>{
     }
 }
 
+export {asyncHandler}
 // this is second function and both can be use 

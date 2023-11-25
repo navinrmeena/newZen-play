@@ -162,16 +162,50 @@ cors can be modified by changing object which contains setting of it
 
 - now set we have to limit incoming data limit such as json limit to 16kb
 
-```
-  app.use(express.json({
-    limit:16kb
+```js
+ 
+app.use(cors({
+    origin:process.env.CORS_ORIGIN,
+    credentials:true
+}))
+
+app.use(express.json({
+    limit:"16kb"
   }))
   app.use(express.urlencoded({
-    limit:16kb
+    extended:true,
+    limit:"16kb"
   }))
   app.use(express.static("public"))
 
-  app.use(cockieparser)
+  app.use(cookieParser());
+```
+
+our app.js becomes
+```js
+    import express from "express";
+import cookieParser from "cookie-parser";
+import cors from "cors";
+
+const app=express();
+
+app.use(cors({
+    origin:process.env.CORS_ORIGIN,
+    credentials:true
+}))
+
+app.use(express.json({
+    limit:"16kb"
+  }))
+  app.use(express.urlencoded({
+    extended:true,
+    limit:"16kb"
+  }))
+  app.use(express.static("public"))
+
+  app.use(cookieParser());
+
+export {app}
 ```
 
 # middleware 
@@ -187,7 +221,7 @@ we make asyncHandler.js in ./scr/utils
 - type 1  promises
 ```js
   const asyncHandler=(requestHandler)=>{
-    (req,res,next)=>{
+    return (req,res,next)=>{
       promiseresolve(requestHandler(req,res,next)).catch(error)=>next(err)
     }
   }
@@ -994,7 +1028,7 @@ export {uploadOnCloudinary};
 
 first we make a file in middlewares with name multer.middlewarre.js
 
-```
+```js
     import multer from 'multer'
 
 const storage = multer.diskStorage({
@@ -1054,4 +1088,126 @@ URN UNIFORM RESOURSE NAME
 
 
 # CONTROLLERS
+
+first we make file in folder controllers    name of file is ``` user.controllers.js```
+
+
+```js
+    import {asyncHandles} from '../utils/asyncHandler.js';
+
+    const registerUser=asyncHandles(async (req,res)=>{
+            res.status(200).json({
+                message:"ok"
+            })
+    })
+    export {registerUser}
+
+```
+
+
+# Routes
+
+we make all the url link when they should call in this folder routes
+
+
+we make file user.routes.js
+```
+    import { Router } from "express";
+
+const router = Router();
+
+
+
+export default router;
+
+
+
+```
+
+we improts routes in app.js files
+
+mport userRouter from './routes/user.routes.js'
+
+//   routes declarations 
+but as our router are not in this current file so we have to use middle ware
+so we use app.use("/useres",userRouter)
+insteds of app.get()
+
+our code in index.js is now===
+```js
+import express from "express";
+import cookieParser from "cookie-parser";
+import cors from "cors";
+
+const app=express();
+
+app.use(cors({
+    origin:process.env.CORS_ORIGIN,
+    credentials:true
+}))
+
+app.use(express.json({
+    limit:"16kb"
+  }))
+  app.use(express.urlencoded({
+    extended:true,
+    limit:"16kb"
+  }))
+  app.use(express.static("public"))
+
+  app.use(cookieParser());
+
+  //Routes import
+  import userRouter from './routes/user.routes.js'
+
+//   routes declarations 
+app.use("/users",userRouter)
+
+
+export {app}
+```
+
+
+
+now we add links in routes as we have called routes
+```Router.route("/register").post(registerUser.js)```
+
+our code in user.routes.js is now
+
+```
+import { Router } from "express";
+import { registerUser } from "../controllers/user.controller.js";
+
+const router = Router();
+
+Router.route("/register").post(registerUser.js)
+
+export default router;
+
+
+
+```
+
+but now come back to app.js as we are calling api so only calling users is not good practice so we call it as "/api/v1/users"
+
+
+app.use("/users",userRouter) ===  app.use("/api/v1/users",userRouter)
+``http://localhost:8000/api/vl/users/register``
+
+
+ JUST SMALL NOTES  
+
+ -WHILE IMPORTING WE USE 
+ ```import {DB_NAME} from "./constants.js";```
+
+ when {....} is exported as defult 
+ like 
+ ```js 
+ export default connectDB;
+ ```
+
+ other wise like
+ ```js
+ import mongoose from "mongoose";
+ ```
 
