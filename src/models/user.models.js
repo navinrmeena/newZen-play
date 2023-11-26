@@ -43,7 +43,11 @@ const userSchema=new Schema(
             type:String,
             required:[true,"pasword is required"] //we can give a coustom message with true
 
+        },
+        refreshToken:{
+            type:String
         }
+        
 
     } ,{
         timestamps:true,
@@ -53,8 +57,9 @@ const userSchema=new Schema(
 
 userSchema.pre("save", async function(next){
     if(this.isModifid("password")){
-        this.password=bcrypt.hash(this.password,10)
+        this.password=await bcrypt.hash(this.password,10)
         // bcrypt.hash(this.password,10) is the method of bcrypt and 10= 10 times
+        // we add await as this function need time 
     next();
     }
     // here we add this if because we dont want that every time save event called and password cahnges

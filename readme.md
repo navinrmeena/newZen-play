@@ -1211,3 +1211,263 @@ app.use("/users",userRouter) ===  app.use("/api/v1/users",userRouter)
  import mongoose from "mongoose";
  ```
 
+
+- we fordeg to import app.js in index.js soo code changes and becomes
+
+# index.js
+```js
+import dotenv from "dotenv"
+import mongoose from "mongoose";
+// import name from constant
+import {DB_NAME} from "./constants.js";
+import {app} from './app.js'
+import connectDB from "./DB/index.js";
+
+// improting express
+import express  from "express";
+
+
+dotenv.config({
+    path:'./env'
+})
+
+// const app=express()
+
+
+console.log("\n",process.env.PORT);
+
+
+
+connectDB()
+.then(()=>{
+    app.listen(process.env.PORT ||8000,()=>{
+        console.log(`app is listining at ${process.env.PORT ||8000}`)
+    })
+})
+.catch((error)=>{
+    console.log("mongodb conection failed",error)
+})
+
+
+// we use a function and iffi
+// iffi executte function onspot
+// ( async()=>{
+//     try{
+//         // we have to use await for async  to manage delay
+//         await mongoose.connect(`${process.env.MONGODB_URI}/${DB_NAME}`)
+//         app.on("error",(error)=>{
+//             console.log("express can't conect to db",error);
+//             throw error ;
+//         })
+//         app.listen(process.env.PORT(),()=>{
+//             console.log(`App is listining as post ${process.env.PORT()}`)
+//         })
+
+//     } 
+//     catch(error){
+//         console.error("error",error);
+//         throw error
+//     }   
+// } ) ( )
+
+
+```
+
+
+#  app.js 
+```js
+    import express from "express";
+import cookieParser from "cookie-parser";
+import cors from "cors";
+
+const app=express();
+
+app.use(cors({
+    origin:process.env.CORS_ORIGIN,
+    credentials:true
+}))
+
+app.use(express.json({
+    limit:"16kb"
+  }))
+  app.use(express.urlencoded({
+    extended:true,
+    limit:"16kb"
+  }))
+  app.use(express.static("public"))
+
+  app.use(cookieParser());
+
+//routes import
+import userRouter from './routes/user.routes.js'
+
+
+//routes declaration
+app.use("/api/v1/users", userRouter)
+
+// http://localhost:8000/api/v1/users/register
+
+export {app }
+```
+
+
+
+#  logic making for register user
+1. get user details from frontend 
+2. validate that details are not empty (mostly done by frontend but its better to check once more)
+3. check if user  already exist or not check it by matching username,or email (apps like instargram use username its all depent on usecase)
+4. check for image for avatar
+5. upload then upload it to cloudinary 
+6. create user object and upload it to DB 
+7. check if user is sreated properly and then if created then send it to front end but make sure we remove password and tokan number 
+8. resend res....
+
+- get user details from frontend 
+
+    so to get data we write code in user.conrtollers.js in ontrollers folder
+     first we save incomming info in 
+    ```js
+    const {fullName,email,username,password}=req.body
+    ```
+    and also to test we print it into consol 
+    and send resest by postman
+
+
+-  now to handle files
+    we first improt storage of multer which is middleware 
+   by code
+    ```js
+        import {upload} from "…/middlewares/multer.middleware.js"
+
+   ```
+    and then we add middleware in routes and in routes in  register routes 
+    ```js
+
+        router.route('/register').post(
+            upload.fields([
+                {name:"avatar",
+                maxCount:1},
+                {name:"coverImage",
+                maxCount:1}
+            ]),
+            registerUser)
+
+
+
+
+    ```
+
+``
+     upload.fields([
+                {name:"avatar",
+                maxCount:1},
+                {name:"coverImage",
+                maxCount:1}
+            ]),
+``
+
+this is the multer upload we use 
+
+
+
+-  VALIDATION 
+
+    for validation we first import apiError file in users.conroller.js which will to throw error 
+    ```js
+    import {apiError} from "../utils/ApiErrors.js"
+    ```
+
+first in 
+```js
+if
+(
+[fullName, email, username, password].some( (field) => field?.trim() === "")
+
+){
+    throw new ApiError(400,"invalid Fullname or full name required
+    ")
+}
+
+```
+
+here ? means if it exit follow next step
+here we first trim fullname then if we get  empty then we throw error
+
+- CHECK USER EXIST OR NOT 
+
+in conrtoller we have to import User as User can directly asses DB  as it is from mongoose
+```js 
+    import { User} from "../models/user.model.js"   
+```
+user have a method find one which return first member in DB  
+
+```js
+const existeduser=Users.findone({
+    $or:[{ username },{ email }]
+})
+if(existeduser){
+    throw new apiError(409,"user with email or username exits")
+}
+
+// in if(){}   we can pass [] (array) as an argument 
+```
+
+
+- CHECK FOR IMAGES 
+
+
+as we can asses all data from req.body 
+multer also give us asses to files 
+by req.files
+
+
+so we use code 
+```js
+const avatarlocalpath=req.files?avatar[0]?.path
+const coverimagelocalpath=req.files?coverimage[0]?.path
+
+if(!avatarlocalpath){
+    throw apiError(400,"avatar required")
+}
+```
+
+
+-UPLOAD FILES TO CLOUDINARY
+
+we first import coludinary in user.conroller.js
+and then we have a method to upload files in cloudinary as define in utils.cloudinay
+then we crreate object and make entry in DB by method .create 
+to send rep we have already maked a utility apiResponse 
+so we import it into user.controller.js
+
+
+by code 
+```js
+const avatar = await uploadOnCloudinary(avatarLocalPath)
+const coverImage = await upload0nCloudinary( coverImageLocalPath)
+
+if(!avatar){
+    throw apiError(400,"Avatar files required ")
+}
+const user = await User.create({
+    fullName,
+    avatar:avatar.url,
+    coverImage:coverImage?.url||"",
+    email,
+    password,
+    username:username,tolowercase()
+})
+
+const createdUser=await User.findbyId(user._Id).select(
+    "-password -refershTokens"
+)
+
+if(!createdUser){
+    throw ApiError(500, "something went wrong in user registration ")
+}
+
+return res.status(201).json({
+    new apiResponce(200,createdUser," User Registered sucesfully")
+})
+
+```
