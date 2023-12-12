@@ -1471,3 +1471,12 @@ return res.status(201).json({
 })
 
 ```
+
+# send file from POSTMAN
+
+now we test our api 
+
+1. we use url http://localhost:8000/api/v1/users/register  and we select post as it is post request 
+2. in postman to give input we use body and in body we set to form-data
+3.![Alt text](image-2.png)
+4. we add key of all fields which are required 

@@ -36,7 +36,7 @@ const userSchema=new Schema(
             type: String, //here we use third party service like cloudniary url
         },
         WatchHistory:{
-            type:Schema.type.ObjectId,
+            type:Schema.ObjectId,
             ref:"Vedio"
         },
         password:{
