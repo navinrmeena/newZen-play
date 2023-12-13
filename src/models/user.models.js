@@ -32,7 +32,7 @@ const userSchema=new Schema(
             type: String, //here we use third party service like cloudniary url
             required:true,
         },
-        coverimage:{
+        coverImage:{
             type: String, //here we use third party service like cloudniary url
         },
         WatchHistory:{
@@ -56,7 +56,7 @@ const userSchema=new Schema(
 )
 
 userSchema.pre("save", async function(next){
-    if(this.isModifid("password")){
+    if(this.isModified("password")){
         this.password=await bcrypt.hash(this.password,10)
         // bcrypt.hash(this.password,10) is the method of bcrypt and 10= 10 times
         // we add await as this function need time 

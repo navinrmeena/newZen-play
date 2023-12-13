@@ -4,6 +4,11 @@ import { uploadOnCloudinary } from '../utils/cloudinary.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import {ApiError} from '../utils/ApiError.js'
 
+// const registerUser=asyncHandler(async (req,res)=>{
+//     res.status(500).json({
+//         message:"chai aur code",
+//     })
+// })
 
 const registerUser=asyncHandler(async (req,res)=>{
     // get user details from frontend
@@ -37,19 +42,25 @@ const registerUser=asyncHandler(async (req,res)=>{
     }
     
     const avatarlocalpath=req.files?.avatar[0]?.path;
-    const coverimagelocalpath=req.files?.coverimage[0]?.path;  
+    // this give path from multer where file is stored
+    
+    // const coverImagelocalPath=req.files?.coverImage[0]?.path;  
+    // but is thire is no local path input given from fronthend then we have to chek that it must not be undefine  
+
     
     let coverImageLocalPath;
+
     if (req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0) {
         coverImageLocalPath = req.files.coverImage[0].path
     }
+   
 
     if(!avatarlocalpath){
         throw new  ApiError(400,"avatar file is required ")
     }
 
     const avatar=await uploadOnCloudinary(avatarlocalpath);
-    const coverimage=await uploadOnCloudinary(coverimagelocalpath)
+    const coverImage=await uploadOnCloudinary(coverImageLocalPath)
 
     if(!avatar){
         throw new ApiError(400,"avatar file is required ")
@@ -58,7 +69,7 @@ const registerUser=asyncHandler(async (req,res)=>{
     const user=await User.create({
         fullName,
         avatar:avatar.url,
-        coverimage:coverimage?.url||"",
+        coverImage:coverImage?.url||"",
         email,
         password,
         username:username.toLowerCase()
@@ -71,11 +82,11 @@ const registerUser=asyncHandler(async (req,res)=>{
         throw new ApiError(500,"something went wrong while user registration  ")
     }
 
-    return req.status(201).json(
+    return res.status(201).json(
        new ApiResponse(200,createdUser,"user registered sucsesfully ")
     )
 
 })
 
-export {registerUser}
+export  {registerUser}
 

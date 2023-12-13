@@ -10,7 +10,7 @@ import express  from "express";
 
 
 dotenv.config({
-    path:'./env'
+    path:'./.env'
 })
 
 // const app=express()
