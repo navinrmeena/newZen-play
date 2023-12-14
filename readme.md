@@ -1762,3 +1762,75 @@ export {uploadOnCloudinary};
 ```
 
 
+
+
+# login user
+
+for log in user we do some stpes 
+1. req body => data
+2. username ,email
+3. find user 
+4. acess token and refresh token
+5. send cookie 
+
+```js
+const userLogin=asyncHandler(async(req,res)=>{
+    // ask for user name and password,
+    // check if user exists
+    // take passwrod and send it to encripter and match with data base password 
+    // if match then allow user to log in 
+    // and give acces token 
+
+
+        // 1. req body => data
+        // 2. username ,email
+        // 3. find user 
+        // 4. acess token and refresh token
+        // 5. send cookie 
+
+   const {email ,username,password}= req.body 
+   if(!username||!email){
+    throw new ApiError(400,"username or email required")
+   }
+
+   const user = await User.findOne({
+    $or:[{username},{email}]
+   })
+
+   if(!user){
+    throw new ApiError(404,"user doesnot  exits")
+   }
+
+   const isPasswordValid= await User.isPasswordCorrect(password)
+
+   if(!isPasswordValid){
+    throw new ApiError(401,"password invalid") 
+   }
+   const {accessToken,refreshToken}=await genrateAccestokenAndRefreshTokens(user._id)
+
+   const logedinuser=await User.findById(user._id).select("-password -refreshToken")
+
+   const options={
+    httpOnly:true,
+    // while we send cookie we degine ootin 
+    // when we add this both option httpOnly,secure true then coookie is only modified by server not by front end
+    secure:true
+   }
+   return res.status(200)
+   .cookie("accessToken",accessToken,options)
+   .cookie("refreshToken",refreshToken,options)
+   .json(
+    new ApiResponse(200,{
+        user: logedinuser,accessToken,refreshToken
+    },
+    "user loggedin ")
+    )
+
+})
+
+```
+
+
+# log out user 
+
+when we have to log out user we cant find user by id as we doesnt as for email/username or password for logout so we have to user a middle ware which we desing in middle ware folder and name it as auth.middleware
