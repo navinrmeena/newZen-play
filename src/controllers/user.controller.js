@@ -108,7 +108,7 @@ const registerUser=asyncHandler(async (req,res)=>{
 
 })
 
-const userLogin=asyncHandler(async(req,res)=>{
+const loginUser=asyncHandler(async(req,res)=>{
     // ask for user name and password,
     // check if user exists
     // take passwrod and send it to encripter and match with data base password 
@@ -123,7 +123,7 @@ const userLogin=asyncHandler(async(req,res)=>{
         // 5. send cookie 
 
    const {email ,username,password}= req.body 
-   if(!username||!email){
+   if(!username&&!email){
     throw new ApiError(400,"username or email required")
    }
 
@@ -161,13 +161,9 @@ const userLogin=asyncHandler(async(req,res)=>{
     )
 
 })
-export  {
-    registerUser,
-    userLogin
-}
 
 
-const loggedout=asyncHandler(async(req,res)=>{
+const logoutUser=asyncHandler(async(req,res)=>{
     User.findByIdAndUpdate(
         req.user._id,
         {
@@ -186,10 +182,19 @@ const loggedout=asyncHandler(async(req,res)=>{
         // when we add this both option httpOnly,secure true then coookie is only modified by server not by front end
         secure:true
        }
-
+        
        return res
        .status(200)
        .clearCookie("accessToken",options)
        .clearCookie("refreshToken",options)
        .json(new ApiResponse(200,{},"user logged out "))
 })
+
+
+export  {
+    registerUser,
+    loginUser,
+    logoutUser
+}
+
+
