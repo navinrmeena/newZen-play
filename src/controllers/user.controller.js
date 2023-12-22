@@ -135,7 +135,7 @@ const loginUser=asyncHandler(async(req,res)=>{
     throw new ApiError(404,"user doesnot  exits")
    }
 
-   const isPasswordValid= await User.isPasswordCorrect(password)
+   const isPasswordValid= await user.isPasswordCorrect(password);
 
    if(!isPasswordValid){
     throw new ApiError(401,"password invalid") 
@@ -161,6 +161,8 @@ const loginUser=asyncHandler(async(req,res)=>{
     )
 
 })
+
+
 
 
 const logoutUser=asyncHandler(async(req,res)=>{

@@ -1,7 +1,6 @@
-import mongoose ,{Schema} from "mongoose";
-import  Jwt  from "jsonwebtoken";
-import bcrypt from"bcrypt";
-
+import mongoose, {Schema} from "mongoose";
+import jwt from "jsonwebtoken"
+import bcrypt from "bcrypt"
 
 const userSchema=new Schema(
     {
@@ -77,14 +76,15 @@ userSchema.pre("save", async function(next){
 
 userSchema.methods.isPasswordCorrect= async function(password){
     return await bcrypt.compare(password,this.password);
+    // return await bcrypt.compare(password, this.password);
     // bcrypt.compare(password,this.password);
     // in this  bcrypt compare our password given by user and saved password 
 }
 
 // we can also make function for genrating assec token
 
-userSchema.method.genrateAccestoken= async function(){
-    return  Jwt.sign(
+userSchema.methods.genrateAccestoken= function(){
+    return  jwt.sign(
         {
             _id:this._id,
             email:this.email,
@@ -97,8 +97,8 @@ userSchema.method.genrateAccestoken= async function(){
     )
 }
 
-userSchema.method.genrateRefreshtoken= async function(){
-    return  Jwt.sign(
+userSchema.methods.genrateRefreshtoken= function(){
+    return  jwt.sign(
         // jwt.sign is method which genrate token 
         {
             _id:this._id,
