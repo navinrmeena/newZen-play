@@ -5,9 +5,6 @@ const asyncHandler=(requestHandler)=>{
 }
 
 
-
-
-
 const asyncHandler1=(fn)=>async(req,res,next)=>{
     try {
         await fn(req,res,next)

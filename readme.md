@@ -1834,3 +1834,11 @@ const userLogin=asyncHandler(async(req,res)=>{
 # log out user 
 
 when we have to log out user we cant find user by id as we doesnt as for email/username or password for logout so we have to user a middle ware which we desing in middle ware folder and name it as auth.middleware
+
+
+
+# AccessToken & RefreshToken 
+
+to ask user to relogin again and again we have can use accessToken and RefreshToken 
+
+in this RefreshTOken is saved in  DB  
