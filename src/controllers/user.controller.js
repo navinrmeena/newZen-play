@@ -8,6 +8,7 @@ import jwt from "jsonwebtoken";
 // const registerUser=asyncHandler(async (req,res)=>{
 //     res.status(500).json({
 //         message:"chai aur code",
+//
 //     })
 // })
 
@@ -203,20 +204,18 @@ const refreshAcessToken = asyncHandler(async (req, res) => {
     if (!incommingRefreshToken) {
       throw new ApiError(401, "unautoriserequest");
     }
-  
+
     const decodedToken = jwt.verify(
       incommingRefreshToken,
       process.env.REFRESH_TOKEN_SECRTE
     );
-  
-  
-    const user=await User.findById(decodedToken?.id);
-  
-  
+
+    const user = await User.findById(decodedToken?.id);
+
     if (!user) {
       throw new ApiError(401, "Invalid refresh token");
     }
-    if(incommingRefreshToken!==user?.refreshToken){
+    if (incommingRefreshToken !== user?.refreshToken) {
       throw new ApiError(401, "refresh token is invalid or used");
     }
     const options = {
@@ -225,31 +224,81 @@ const refreshAcessToken = asyncHandler(async (req, res) => {
       // when we add this both option httpOnly,secure true then coookie is only modified by server not by front end
       secure: true,
     };
-  
-    const {accessToken,newrefreshToken}=await genrateAccestokenAndRefreshTokens(user._id);
-  
+
+    const { accessToken, newrefreshToken } =
+      await genrateAccestokenAndRefreshTokens(user._id);
+
     return res
-    .status(200)
-    .cookie("acessToken",accessToken,options)
-    .cookie("refreshToken",newrefreshToken,options)
-    .json(
-      new ApiResponse(
+      .status(200)
+      .cookie("acessToken", accessToken, options)
+      .cookie("refreshToken", newrefreshToken, options)
+      .json(
+        new ApiResponse(
           200,
-          {accessToken,refreshToken:newrefreshToken },
+          { accessToken, refreshToken: newrefreshToken },
           "AcessToken refreshed ......"
-      )
-    )
+        )
+      );
   } catch (error) {
-    throw  new ApiResponse(401,error?.message||"INVALID REFRESH TOEKN");
-    
+    throw new ApiResponse(401, error?.message || "INVALID REFRESH TOEKN");
   }
 
   try {
-    
-  } catch (error) {
-    
+  } catch (error) {}
+});
+
+const changeCurrentPassword = asyncHandler(async (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+  // if(!(newPassword===reenterPassword)){
+  //   throw new ApiError(400,"new password and reentered password does not match");
+  // }
+
+  const user = await User.findById(req.user?.id);
+  const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
+  if (!isPasswordCorrect) {
+    throw new ApiError(400, "invalid old password");
   }
+  user.password = newPassword;
+  await user.save({ validateBeforeSave: false });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "password changed ....."));
+});
+
+const getCurrentUser = asyncHandler(async (req, res) => {
+  // const currentUser = User.id;
+  return res.status(200)
+  .josn(200,req.user,"current User featched");
 
 });
 
-export { registerUser, loginUser, logoutUser,refreshAcessToken};
+const UpdateAccountDetails=asyncHandler(async(req,res)=>{
+  const {fullName,email}=req.body;
+  // if we are updateing any files like photo then we should have different controllers for this 
+    if(!fullName||!email){
+      throw new ApiError(401,"give both email and fullName  (all field required)");
+      User.findByIdAndUpdate(
+        req.user?.id,
+        {
+            $set:{
+              fullName:fullName,
+              email:email,
+            }
+        },
+        {
+          new:true //this will return us updated user
+        }
+      )
+    }
+});
+
+
+export {
+  registerUser,
+  loginUser,
+  logoutUser,
+  refreshAcessToken,
+  changeCurrentPassword,
+  getCurrentUser,
+};
