@@ -5,7 +5,6 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 import jwt from "jsonwebtoken";
 
-
 // const registerUser=asyncHandler(async (req,res)=>{
 //     res.status(500).json({
 //         message:"chai aur code",
@@ -321,10 +320,9 @@ const UpdateAvatar = asyncHandler(async (req, res) => {
       new: true,
     }
   ).select("-password");
-//   if(avatarLocarpath){
-//     fs.unlinkSync(avatarLocarpath);
-// }
-
+  //   if(avatarLocarpath){
+  //     fs.unlinkSync(avatarLocarpath);
+  // }
 
   return res
     .status(200)
@@ -362,75 +360,72 @@ const UpdateCoverImage = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200), user, "updated coverImage  successfully ");
 });
 
-const getUserChannelProfile = asyncHandler(async(req,res)=>{
-        const {username} = req.params
-        if(!username?.trim()){
-          throw ApiError(400,"username is misssing")
-        }
+const getUserChannelProfile = asyncHandler(async (req, res) => {
+  const { username } = req.params;
+  if (!username?.trim()) {
+    throw ApiError(400, "username is misssing");
+  }
 
-       const channel=await User.aggregate([
-          {
-            $match:{
-              username:username?.toLowerCase()
-            },
-            
+  const channel = await User.aggregate([
+    {
+      $match: {
+        username: username?.toLowerCase(),
+      },
+    },
+    {
+      $lookup: {
+        from: "subscriptions",
+        localField: "_id",
+        foreignField: "channel",
+        as: "subscribers",
+      },
+    },
+    {
+      $lookup: {
+        from: "subscriptions",
+        localField: "_id",
+        foreignField: "subscriber",
+        as: "subscribedTo",
+      },
+    },
+    {
+      $addFields: {
+        subscribersCount: {
+          $size: "$subscribers",
+        },
+        channelSubscribedToCount: {
+          $size: "$subscribedTo",
+        },
+        isSubscribed: {
+          $cond: {
+            if: { $in: [req.user?._id, "$subscribers.subscriber"] },
+            then: true,
+            else: false,
           },
-          {
-            $lookup:{
-              from:"subscriptions",
-              localField:"_id",
-              foreignField:"channel",
-              as:"subscribers"
-            }
-          },
-          {
-            $lookup:{
-              from:"subscriptions",
-              localField:"_id",
-              foreignField:"subscriber",
-              as:"subscribedTo"
-            }
-          },
-          {
-            $addFields:{
-              subscribersCount:{
-                $size:"$subscribers"
-              },
-              channelSubscribedToCount:{
-                $size:"$subscribedTo"
-              },
-              isSubscribed:{
-                $cond:{
-                  if:{$in:[req.user?._id,"$subscribers.subscriber"]},
-                  then:true,
-                  else:false,
-                }
+        },
+      },
+    },
+    {
+      $project: {
+        fullName: 1,
+        username: 1,
+        subscribersCount: 1,
+        channelSubscribedToCount: 1,
+        isSubscribed: 1,
+        avatar: 1,
+        coverImage: 1,
+        email: 1,
+      },
+    },
+  ]);
 
-              }
+  if (channel?.length) {
+    throw ApiError(401, "channel does not exists ");
+  }
 
-            }
-          },
-         {
-          $project:{
-            fullName:1,
-            username:1,
-            subscribersCount:1,
-            channelSubscribedToCount:1,
-            isSubscribed:1,
-            avatar:1,
-            coverImage:1,
-            email:1,
-          }
-         }
-       ])
-
-       if(channel?.length){
-        throw  ApiError(401,"channel does not exists ")
-       }
-
-       return res.status(200)
-       .json(new ApiResponse(200,channel[0],"user chanel fatched succesfully"))
-
+  return res
+    .status(200)
+    .json(new ApiResponse(200, channel[0], "user chanel fatched succesfully"));
 });
 
 export {
@@ -443,4 +438,5 @@ export {
   UpdateAccountDetails,
   UpdateAvatar,
   UpdateCoverImage,
+  getUserChannelProfile,
 };
