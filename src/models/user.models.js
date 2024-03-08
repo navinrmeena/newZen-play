@@ -82,34 +82,34 @@ userSchema.methods.isPasswordCorrect= async function(password){
 }
 
 // we can also make function for genrating assec token
-
-userSchema.methods.genrateAccestoken= function(){
-    return  jwt.sign(
-        {
-            _id:this._id,
-            email:this.email,
-            fullName:this.fullName
-        },
-        process.env.ACCESS_TOKEN_SECRTE,
-        {
-            expiresIn:process.env.ACCESS_TOKEN_EXPIRY
-        }
-    )
-}
-
-userSchema.methods.genrateRefreshtoken= function(){
-    return  jwt.sign(
-        // jwt.sign is method which genrate token 
-        {
-            _id:this._id,
-        },
-        process.env.REFRESH_TOKEN_SECTRE,
-        {
-            expiresIn:process.env.REFRESH_TOKEN_EXPIRY
-        }
-    )
-}
-
+userSchema.methods.genrateAccestoken = function () {
+    return jwt.sign(
+      {
+        _id: this._id,
+        email: this.email,
+        Name: this.fullName,
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
+      }
+    );
+  };
+  
+  userSchema.methods.genrateRefreshtoken = function () {
+    return jwt.sign(
+      // jwt.sign is method which genrate token
+      {
+        _id: this._id,
+      },
+      process.env.JWT_SECRET,
+      {   
+      
+        expiresIn: process.env.REFRESH_TOKEN_EXPIRY,
+      }
+    );
+  };
+  
 export const User= mongoose.model("User",userSchema);
 
 

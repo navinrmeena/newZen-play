@@ -5,27 +5,28 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 import jwt from "jsonwebtoken";
 
-// const registerUser=asyncHandler(async (req,res)=>{
-//     res.status(500).json({
-//         message:"chai aur code",
-//
-//     })
-// })
+
+
+
 
 const genrateAccestokenAndRefreshTokens = async (userId) => {
+  
   try {
     const user = await User.findById(userId);
     const accessToken = user.genrateAccestoken();
     const refreshToken = user.genrateRefreshtoken();
+    
 
-    // now we have genrated token we have to save it to user so
     user.refreshToken = refreshToken;
     // now we added refreshToken but we have to save it soo
+
     await user.save({ validateBeforeSave: false }); //by this line we can save but every time we save
     // we need password to validate so {validateBeforeSave : false} it will skip validation
 
     return { accessToken, refreshToken };
+    
   } catch (error) {
+    console.log("error", error);
     throw new ApiError(
       500,
       "something went wrong while genrating acces Tokens and refresh Tokens"
@@ -175,7 +176,7 @@ const logoutUser = asyncHandler(async (req, res) => {
     req.user._id,
     {
       $set: {
-        refreshToken: undefined,
+        refreshToken:1,
       },
     },
     {
@@ -440,3 +441,4 @@ export {
   UpdateCoverImage,
   getUserChannelProfile,
 };
+ 
