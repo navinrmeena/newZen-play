@@ -89,7 +89,7 @@ userSchema.methods.genrateAccestoken = function () {
         email: this.email,
         Name: this.fullName,
       },
-      process.env.JWT_SECRET,
+      process.env.ACCESS_TOKEN_SECRTE,
       {
         expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
       }
@@ -102,7 +102,7 @@ userSchema.methods.genrateAccestoken = function () {
       {
         _id: this._id,
       },
-      process.env.JWT_SECRET,
+      process.env.ACCESS_TOKEN_SECRTE,
       {   
       
         expiresIn: process.env.REFRESH_TOKEN_EXPIRY,
